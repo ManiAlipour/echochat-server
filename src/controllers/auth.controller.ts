@@ -3,6 +3,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import User from "../models/User";
 import Session from "../models/Session";
+import { AuthRequest } from "../middleware/auth.middleware";
 
 export async function register(req: Request, res: Response) {
   try {
@@ -77,9 +78,9 @@ export async function login(req: Request, res: Response) {
   }
 }
 
-export async function me(req: Request, res: Response) {
+export async function me(req: AuthRequest, res: Response) {
   try {
-    const { userId } = req;
+    const userId = req.userId;
 
     const user = await User.findById(userId).select("-password");
 
@@ -96,7 +97,7 @@ export async function me(req: Request, res: Response) {
   }
 }
 
-export const logout = async (req: Request, res: Response) => {
+export const logout = async (req: AuthRequest, res: Response) => {
   try {
     const sessionId = req.sessionId;
 

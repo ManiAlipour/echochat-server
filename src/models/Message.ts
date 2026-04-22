@@ -1,25 +1,42 @@
-import mongoose from "mongoose";
+import { Schema, model } from "mongoose";
 
-const messageSchema = new mongoose.Schema(
+const MessageSchema = new Schema(
   {
     conversation: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "Conversation",
       required: true,
     },
+
     sender: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: Schema.Types.ObjectId,
       ref: "User",
+      required: true,
     },
-    text: String,
-    seenBy: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
-    ],
+
+    text: {
+      type: String,
+      trim: true,
+      default: "",
+    },
+
+    seenStatus: {
+      type: String,
+      enum: ["pv", "group", "channel"],
+      required: true,
+    },
+
+    isSeen: {
+      type: Boolean,
+      default: false,
+    },
+
+    seenCount: {
+      type: Number,
+      default: 0,
+    },
   },
   { timestamps: true },
 );
 
-export default mongoose.model("Message", messageSchema);
+export default model("Message", MessageSchema);

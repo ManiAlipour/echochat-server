@@ -2,6 +2,11 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import Session from "../models/Session";
 
+export type AuthRequest = Request & {
+  userId?: string;
+  sessionId?: string;
+};
+
 export const authMiddleware = async (
   req: Request,
   res: Response,
@@ -21,8 +26,8 @@ export const authMiddleware = async (
     if (!session)
       return res.status(401).json({ message: "Session expired or logged out" });
 
-    req.userId = decoded.userId;
-    req.sessionId = session._id.toString();
+    (req as AuthRequest).userId = decoded.userId;
+    (req as AuthRequest).sessionId = session._id.toString();
 
     next();
   } catch {
