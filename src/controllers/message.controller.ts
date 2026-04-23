@@ -2,6 +2,7 @@ import { Response } from "express";
 import Conversation from "../models/Conversation";
 import Message from "../models/Message";
 import { AuthRequest } from "../middleware/auth.middleware";
+import { mapMessageToDTO } from "../utils/mappers/message.mapper";
 
 export const sendMessage = async (req: AuthRequest, res: Response) => {
   try {
@@ -9,7 +10,7 @@ export const sendMessage = async (req: AuthRequest, res: Response) => {
     const { text } = req.body;
     const userId = req.userId;
 
-    if (!text || text.trim().length === 0) {
+    if (!text || text.trim() === "") {
       return res.status(400).json({ message: "Message text is required." });
     }
 
@@ -18,7 +19,7 @@ export const sendMessage = async (req: AuthRequest, res: Response) => {
       return res.status(404).json({ message: "Conversation not found." });
     }
 
-    const seenStatus: "pv" | "group" | "channel" =
+    const seenStatus =
       conversation.type === "pv"
         ? "pv"
         : conversation.type === "group"
@@ -38,7 +39,11 @@ export const sendMessage = async (req: AuthRequest, res: Response) => {
     conversation.lastMessageAt = new Date();
     await conversation.save();
 
-    return res.status(201).json({ message: newMessage });
+    const populated = await newMessage.populate("sender");
+
+    return res.status(201).json({
+      message: mapMessageToDTO(populated),
+    });
   } catch (err) {
     console.error("Send Message Error:", err);
     res.status(500).json({ message: "Server error" });
@@ -53,7 +58,9 @@ export const getMessages = async (req: AuthRequest, res: Response) => {
       .populate("sender", "firstName lastName username avatar")
       .sort({ createdAt: 1 });
 
-    return res.json({ messages });
+    return res.json({
+      messages: messages.map(mapMessageToDTO),
+    });
   } catch (err) {
     console.error("Get Messages Error:", err);
     res.status(500).json({ message: "Server error" });
